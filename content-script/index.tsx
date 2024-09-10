@@ -1,3 +1,4 @@
+import browser from "webextension-polyfill";
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
@@ -21,11 +22,11 @@ index.id = pluginTagId;
 // https://developer.chrome.com/docs/extensions/mv3/content_scripts/#run_time
 const body = document.querySelector('body')
 if (body) {
-  body.append(index)
+    body.append(index)
 }
 
 ReactDOM.createRoot(index).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
+    <React.StrictMode>
+        <App />
+    </React.StrictMode>
 )

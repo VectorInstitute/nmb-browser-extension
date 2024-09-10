@@ -1,17 +1,17 @@
 import browser from "webextension-polyfill";
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App'
-import './index.css'
+import React from "react"
+import ReactDOM from "react-dom/client"
+import App from "./App"
+import "./index.css"
 
-const pluginTagId = 'extension-root';
-const existingInstance = document.getElementById('extension-root');
+const pluginTagId = "extension-root";
+const existingInstance = document.getElementById("extension-root");
 if (existingInstance) {
-  console.log('existing instance found, removing');
+  console.log("existing instance found, removing");
   existingInstance.remove();
 }
 
-const index = document.createElement('div')
+const index = document.createElement("div")
 index.id = pluginTagId;
 
 // Make sure the element that you want to mount the app to has loaded. You can
@@ -20,7 +20,7 @@ index.id = pluginTagId;
 //
 // Also control when the content script is injected from the manifest.json:
 // https://developer.chrome.com/docs/extensions/mv3/content_scripts/#run_time
-const body = document.querySelector('body')
+const body = document.querySelector("body")
 if (body) {
     body.append(index)
 }

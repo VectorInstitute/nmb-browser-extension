@@ -2,12 +2,12 @@ import browser from "webextension-polyfill";
 import {useState} from "react";
 
 const App = () => {
-    const [fact, setFact] = useState('Click the button to fetch a fact!');
+    const [fact, setFact] = useState("Click the button to fetch a fact!");
     const [loading, setLoading] = useState(false);
 
     async function handleOnClick() {
         setLoading(true);
-        const {data} = await browser.runtime.sendMessage({action: 'fetch'});
+        const {data} = await browser.runtime.sendMessage({action: "fetch"});
         setFact(data);
         setLoading(false);
     }

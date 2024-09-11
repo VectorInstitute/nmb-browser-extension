@@ -25,8 +25,8 @@ const App = () => {
     }
 
     return (
-        <div className="fixed top-20 left-20" id="nmb-plugin">
-          <div className='flex flex-col gap-4 p-4 shadow-sm bg-gradient-to-r from-purple-500 to-pink-500 w-96 rounded-md'>
+        <div id="nmb-plugin">
+          <div id="nmb-card">
             <h1>News Bias Detector</h1>
             <button
               className='px-4 py-2 font-semibold text-sm bg-cyan-500 text-white rounded-full shadow-sm disabled:opacity-75 w-48'

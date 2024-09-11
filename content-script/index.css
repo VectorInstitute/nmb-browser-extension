@@ -4,4 +4,29 @@
 #nmb-plugin {
     display: none;
     z-index: 10000;
+    font-family: Helvetica;
+    color: black;
+    position: fixed;
+    top: 5em;
+    right: 5em;
+}
+
+#nmb-card {
+    background-color: #C312A1;
+    padding: 20px;
+    display: flex;
+    border-radius: .375rem;
+    flex-direction: column;
+}
+
+#nmb-card h1 {
+    font-weight: 700;
+    font-size: 32px;
+    margin-bottom: 20px;
+    margin-top: 20px;
+}
+
+#nmb-card p {
+    font-size: 16px;
+    margin-top: 18px;
 }

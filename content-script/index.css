@@ -12,11 +12,12 @@
 }
 
 #nmb-card {
-    background-color: #C312A1;
-    padding: 20px;
     display: flex;
-    border-radius: .375rem;
     flex-direction: column;
+    background-image: linear-gradient(to right, #CF109C, #A21CB7);
+    padding: 20px;
+    border-radius: .375rem;
+    box-shadow: 10px 10px 5px gray;
 }
 
 #nmb-card h1 {

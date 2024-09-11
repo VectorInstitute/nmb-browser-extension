@@ -1,21 +1,17 @@
 import browser from "webextension-polyfill";
 
 type Message = {
-    action: "fetch",
-    value: null
+    action: string,
+    value: any,
 }
 
 type ResponseCallback = (data: any) => void
 
 async function handleMessage({action, value}: Message, response: ResponseCallback) {
-    if (action === "fetch") {
-        const result = await fetch("https://meowfacts.herokuapp.com/");
-
-        const { data } = await result.json();
-
-        response({ message: "success", data });
+    if (action === "test") {
+        response({ message: "success", data: "test", error: null });
     } else {
-        response({data: null, error: "Unknown action"});
+        response({ message: "error", data: null, error: "Unknown action" });
     }
 }
 

@@ -1,17 +1,17 @@
 {
-  "name": "Cat Facts",
-  "description": "Learn random facts about cats",
-  "version": "1.0.0",
+  "name": "News Bias Detector",
+  "description": "Detect bias on news articles",
+  "version": "0.0.1",
   "manifest_version": 3,
   "action": {
-    "default_popup": "index.html",
+    "default_icon": {
+      "128": "logo128.png"
+    },
     "default_title": "Open the popup"
   },
   "content_scripts": [
     {
-      "matches": [
-        "https://blank.org/*"
-      ],
+      "matches": ["<all_urls>"],
       "run_at": "document_end",
       "js": [
         "./index.global.js"
@@ -22,7 +22,8 @@
     }
   ],
   "permissions": [
-    "storage"
+    "storage",
+    "active_tab"
   ],
   "background": {
     "service_worker": "./background.global.js"

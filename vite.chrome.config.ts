@@ -23,7 +23,7 @@ export default defineConfig({
     lib: {
       formats: ['iife'],
       entry: resolve(__dirname, './background.ts'),
-      name: 'Cat Facts'
+      name: 'News Bias Detector'
     },
     rollupOptions: {
       output: {

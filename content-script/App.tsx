@@ -48,11 +48,15 @@ const ModelLoader = () => {
     const [result, setResult] = useState("");
     const [loading, setLoading] = useState(false);
 
+    const model_name = "tinybert_mpds2024a_finetuned.onnx";
+    const url = `https://huggingface.co/mlotif/test_tinybest_onnx_classification/resolve/main/${model_name}?download=true`;
+    const destination = `nmb-extension/${model_name}`;
+
     async function handleOnClick() {
         setLoading(true);
         setResult("");
         try {
-            const { data } = await browser.runtime.sendMessage({action: "download-model"});
+            const { data } = await browser.runtime.sendMessage({ action: "download-model", value: { url, destination } });
             setResult(data);
         } catch (error) {
             console.error(error);

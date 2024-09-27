@@ -1,7 +1,5 @@
 import browser from "webextension-polyfill";
 
-const model_url = "https://huggingface.co/mlotif/test_tinybest_onnx_classification/resolve/main/tinybert_mpds2024a_finetuned.onnx?download=true";
-
 type Message = {
     action: string,
     value: any,
@@ -9,20 +7,45 @@ type Message = {
 
 type ResponseCallback = (data: any) => void
 
-async function handleMessage({action, value}: Message, response: ResponseCallback) {
+async function handleMessage({ action, value }: Message, response: ResponseCallback) {
     if (action === "download-model") {
-        browser.downloads.download({
-            url: model_url
-        }).then(response => {
+        await browser.downloads.download({ url: value.url, filename: value.destination }).then(async downloadId => {
             console.log("Response:");
-            console.log(response);
+            console.log(downloadId);
+            await waitForDownloadToFinish(downloadId);
+            response({ message: "success", data: null, error: null });
         }).catch(error => {
-            console.log("Error:");
-            console.log(error);
+            console.error(error);
+            response({ message: "error", data: null, error });
         });
-        response({ message: "success", data: "test", error: null });
     } else {
         response({ message: "error", data: null, error: `Unknown action: '${action}'` });
+    }
+}
+
+async function waitForDownloadToFinish(downloadId) {
+    let done = false;
+    while (!done) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        browser.downloads.search({ id: downloadId }).then(items => {
+            const item = items.reduce((chosenItem, i) => {
+                chosenItem = i.id == id ? i : chosenItem
+            });
+            const progress = parseInt((item.bytesReceived / item.totalBytes) * 100)
+            console.log(`Model download progress: ${progress}% (${item.bytesReceived}/${item.totalBytes})`);
+            if(item.state == "complete") {
+                done = true;
+                console.log("Model download complete!");
+            }
+            if (item.error) {
+                done == true;
+                throw new Error(item.error);
+            }
+            if (item.danger && item.danger !== "safe") {
+                done == true;
+                throw new Error("Item marked as not safe!");
+            }
+        });
     }
 }
 

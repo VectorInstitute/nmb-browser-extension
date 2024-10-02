@@ -8,12 +8,15 @@ type Message = {
 type ResponseCallback = (data: any) => void
 
 async function handleMessage({ action, value }: Message, response: ResponseCallback) {
-    if (action === "download-model") {
+    if (action === "default-folder") {
+        console.log(browser.downloads);
+//         response({ message: "success", data: browser.downloads.showDefaultFolder(), error: null });
+    } else if (action === "download-model") {
         await browser.downloads.download({ url: value.url, filename: value.destination }).then(async downloadId => {
             console.log("Response:");
             console.log(downloadId);
-            await waitForDownloadToFinish(downloadId);
-            response({ message: "success", data: null, error: null });
+            const filename = await waitForDownloadToFinish(downloadId);
+            response({ message: "success", data: filename, error: null });
         }).catch(error => {
             console.error(error);
             response({ message: "error", data: null, error });
@@ -23,18 +26,18 @@ async function handleMessage({ action, value }: Message, response: ResponseCallb
     }
 }
 
-async function waitForDownloadToFinish(downloadId) {
+async function waitForDownloadToFinish(downloadId: number): string {
     let done = false;
+    let filename;
     while (!done) {
         await new Promise(resolve => setTimeout(resolve, 1000));
         browser.downloads.search({ id: downloadId }).then(items => {
-            const item = items.reduce((chosenItem, i) => {
-                chosenItem = i.id == id ? i : chosenItem
-            });
+            const item = items.reduce((chosenItem, i) => { chosenItem = i.id === id ? i : chosenItem });
             const progress = parseInt((item.bytesReceived / item.totalBytes) * 100)
             console.log(`Model download progress: ${progress}% (${item.bytesReceived}/${item.totalBytes})`);
             if(item.state == "complete") {
                 done = true;
+                filename = item.filename;
                 console.log("Model download complete!");
             }
             if (item.error) {
@@ -47,6 +50,7 @@ async function waitForDownloadToFinish(downloadId) {
             }
         });
     }
+    return filename;
 }
 
 // @ts-ignore

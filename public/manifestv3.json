@@ -24,7 +24,8 @@
   "permissions": [
     "storage",
     "active_tab",
-    "downloads"
+    "downloads",
+    "file:///"
   ],
   "background": {
     "service_worker": "./background.global.js"

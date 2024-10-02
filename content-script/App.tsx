@@ -1,10 +1,33 @@
 import browser from "webextension-polyfill";
 import { Readability } from "@mozilla/readability";
 
-import {useState} from "react";
+import { useState, useEffect } from "react";
 import { InferenceSession } from "onnxruntime-node";
 
 const App = () => {
+    const [modelFileName, setModelFileName] = useState(null);
+
+    return (
+        <div id="nmb-plugin">
+          <div id="nmb-card">
+            <h1>News Bias Detector</h1>
+
+            <TextAnalyzer modelFileName={modelFileName} />
+
+            <ModelDownloader modelFileName={modelFileName} setModelFileName={setModelFileName}/>
+
+          </div>
+        </div>
+    );
+}
+
+export default App;
+
+const TextAnalyzer = ({ modelFileName }) => {
+    if (!modelFileName) {
+        return null;
+    }
+
     const [result, setResult] = useState("");
     const [loading, setLoading] = useState(false);
 
@@ -25,44 +48,64 @@ const App = () => {
         setLoading(false);
     }
 
+    const buttonClasses = "px-4 py-2 font-semibold text-sm bg-cyan-500 text-white rounded-full shadow-sm disabled:opacity-75 w-48";
+
     return (
-        <div id="nmb-plugin">
-          <div id="nmb-card">
-            <h1>News Bias Detector</h1>
-            <button
-              className='px-4 py-2 font-semibold text-sm bg-cyan-500 text-white rounded-full shadow-sm disabled:opacity-75 w-48'
-              disabled={loading} onClick={handleOnClick}>Analyze
+        <div>
+            <button className={buttonClasses} disabled={loading} onClick={handleOnClick}>
+                Analyze
             </button>
             <p>{result}</p>
-
-            <ModelLoader/>
-
-          </div>
         </div>
     );
 }
 
-export default App;
-
-const ModelLoader = () => {
-    const [result, setResult] = useState("");
+const ModelDownloader = ({ modelFileName, setModelFileName }) => {
     const [loading, setLoading] = useState(false);
 
-    const model_name = "tinybert_mpds2024a_finetuned.onnx";
-    const url = `https://huggingface.co/mlotif/test_tinybest_onnx_classification/resolve/main/${model_name}?download=true`;
-    const destination = `nmb-extension/${model_name}`;
+    let defaultFolder;
+    useEffect(() => {
+        async function fetchDefaultFolder() {
+            const { data } = await browser.runtime.sendMessage({ action: "default-folder" });
+            console.log("Default folder:");
+            console.log(defaultFolder);
+        }
+        fetchDefaultFolder();
+    }, [defaultFolder]);
+
+    console.log("Default folder 2:");
+    console.log(defaultFolder);
+
+    const modelName = "tinybert_mpds2024a_finetuned.onnx";
+    const url = `https://huggingface.co/mlotif/test_tinybest_onnx_classification/resolve/main/${modelName}?download=true`;
+    const destination = `nmb-extension/${modelName}`;
+    const spinnerContainerClasses = "inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-e-transparent align-[-0.125em] text-surface motion-reduce:animate-[spin_1.5s_linear_infinite] dark:text-white";
+    const spinnerElementClasses = "!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]";
 
     async function handleOnClick() {
         setLoading(true);
-        setResult("");
         try {
             const { data } = await browser.runtime.sendMessage({ action: "download-model", value: { url, destination } });
-            setResult(data);
+            setModelFileName(data);
         } catch (error) {
             console.error(error);
-            setResult(error.toString());
         }
         setLoading(false);
+    }
+
+    if (modelFileName) {
+        return null;
+    }
+
+    if (loading) {
+        return (
+            <div id="spinner">
+                <div className={spinnerContainerClasses} role="status">
+                    <span className={spinnerElementClasses} />
+                </div>
+                <div id="spinner-label">Downloading model...</div>
+            </div>
+        );
     }
 
     return (

@@ -11,7 +11,8 @@
   },
   "permissions": [
     "activeTab",
-    "downloads"
+    "downloads",
+    "file:///"
   ],
   "optional_permissions": [
     "<all_urls>"

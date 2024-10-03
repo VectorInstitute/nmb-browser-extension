@@ -9,7 +9,7 @@ const App = () => {
     const [result, setResult] = useState("");
     const [loading, setLoading] = useState(false);
 
-    // V2 vs V3
+    // Differences in Manifest V2 vs V3:
     let browserRuntime = browser.extension.getURL ? browser.extension : browser.runtime;
 
     let modelPath = browserRuntime.getURL("models/tinybert_mpds2024a_finetuned.onnx");

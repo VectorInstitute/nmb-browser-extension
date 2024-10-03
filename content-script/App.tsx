@@ -1,23 +1,22 @@
 import browser from "webextension-polyfill";
 import { Readability } from "@mozilla/readability";
 
-import modelUrl from "./model/tinybert_mpds2024a_finetuned.onnx"
-
 import {useState} from "react";
+
+import { InferenceSession, env } from "onnxruntime-web";
 
 const App = () => {
     const [result, setResult] = useState("");
     const [loading, setLoading] = useState(false);
 
-    let modelPath;
-    if (browser.extension.getURL) {
-        // V2
-        modelPath = browser.extension.getURL("models/tinybert_mpds2024a_finetuned.onnx");
-    } else {
-        // V3
-        modelPath = browser.runtime.getURL("models/tinybert_mpds2024a_finetuned.onnx");
-    }
-    console.log(modelPath);
+    // V2 vs V3
+    let browserRuntime = browser.extension.getURL ? browser.extension : browser.runtime;
+
+    let modelPath = browserRuntime.getURL("models/tinybert_mpds2024a_finetuned.onnx");
+    env.wasm.wasmPaths = {
+        mjs: browserRuntime.getURL("models/ort-wasm-simd-threaded.mjs"),
+        wasm: browserRuntime.getURL("models/ort-wasm-simd-threaded.wasm"),
+    };
 
     async function handleOnClick() {
         setLoading(true);
@@ -26,7 +25,8 @@ const App = () => {
             const reader = new Readability(document.cloneNode(true));
             const articleContent = reader.parse();
             const textContent = articleContent.textContent;
-            console.log(textContent);
+
+            const session = await InferenceSession.create(modelPath);
 
             setResult(`Page text content has ${textContent.length} characters.`);
         } catch (error) {

@@ -21,8 +21,19 @@ browser.runtime.onMessage.addListener((msg, sender, response) => {
     return true;
 });
 
-browser.browserAction.onClicked.addListener(function(tab) {
-    browser.tabs.executeScript(tab.id,{
-        code: 'document.getElementById("nmb-plugin").style.display = "block"',
+// V2 (Firefox)
+if (browser.browserAction) {
+    browser.browserAction.onClicked.addListener(function(tab) {
+        browser.tabs.executeScript(tab.id,{
+            code: 'document.getElementById("nmb-plugin").style.display = "block"',
+        });
     });
-});
+// V3 (Chrome)
+} else {
+    browser.action.onClicked.addListener(function(tab) {
+        browser.scripting.executeScript({
+            target: { tabId: tab.id, allFrames: true },
+            func: () => { document.getElementById("nmb-plugin").style.display = "block"; },
+        });
+    });
+}

@@ -10,7 +10,8 @@
     "default_title": "Open the popup"
   },
   "permissions": [
-    "activeTab"
+    "activeTab",
+    "scripting"
   ],
   "optional_permissions": [
     "<all_urls>"

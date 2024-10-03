@@ -23,7 +23,8 @@
   ],
   "permissions": [
     "storage",
-    "active_tab"
+    "activeTab",
+    "scripting"
   ],
   "background": {
     "service_worker": "./background.global.js"

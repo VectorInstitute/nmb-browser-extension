@@ -1,11 +1,23 @@
 import browser from "webextension-polyfill";
 import { Readability } from "@mozilla/readability";
 
+import modelUrl from "./model/tinybert_mpds2024a_finetuned.onnx"
+
 import {useState} from "react";
 
 const App = () => {
     const [result, setResult] = useState("");
     const [loading, setLoading] = useState(false);
+
+    let modelPath;
+    if (browser.extension.getURL) {
+        // V2
+        modelPath = browser.extension.getURL("models/tinybert_mpds2024a_finetuned.onnx");
+    } else {
+        // V3
+        modelPath = browser.runtime.getURL("models/tinybert_mpds2024a_finetuned.onnx");
+    }
+    console.log(modelPath);
 
     async function handleOnClick() {
         setLoading(true);

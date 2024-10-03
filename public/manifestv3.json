@@ -34,7 +34,11 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["models/tinybert_mpds2024a_finetuned.onnx"],
+      "resources": [
+        "models/tinybert_mpds2024a_finetuned.onnx",
+        "models/ort-wasm-simd-threaded.mjs",
+        "models/ort-wasm-simd-threaded.wasm"
+      ],
       "matches": ["<all_urls>"]
     }
   ]

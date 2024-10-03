@@ -27,8 +27,9 @@ const App = () => {
             const textContent = articleContent.textContent;
 
             const session = await InferenceSession.create(modelPath);
+            console.log(session);
 
-            setResult(`Page text content has ${textContent.length} characters.`);
+            setResult(`Page text content has ${textContent.length} characters. ONNX session: ${session}`);
         } catch (error) {
             console.error(error);
             setResult(error.toString());

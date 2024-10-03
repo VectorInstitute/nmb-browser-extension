@@ -12,7 +12,7 @@
   "permissions": [
     "activeTab",
     "downloads",
-    "file:///"
+    "file://*/*"
   ],
   "optional_permissions": [
     "<all_urls>"

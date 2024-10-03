@@ -62,30 +62,27 @@ const TextAnalyzer = ({ modelFileName }) => {
 
 const ModelDownloader = ({ modelFileName, setModelFileName }) => {
     const [loading, setLoading] = useState(false);
+    const [defaultFolder, setDefaultFolder] = useState(null);
 
-    let defaultFolder;
-    useEffect(() => {
-        async function fetchDefaultFolder() {
-            const { data } = await browser.runtime.sendMessage({ action: "default-folder" });
-            console.log("Default folder:");
-            console.log(defaultFolder);
-        }
-        fetchDefaultFolder();
-    }, [defaultFolder]);
-
-    console.log("Default folder 2:");
-    console.log(defaultFolder);
-
+    const baseUrl = "https://huggingface.co/mlotif/test_tinybest_onnx_classification/resolve/main";
+    const placeholderUrl = `${baseUrl}/placeholder?download=true`;
     const modelName = "tinybert_mpds2024a_finetuned.onnx";
-    const url = `https://huggingface.co/mlotif/test_tinybest_onnx_classification/resolve/main/${modelName}?download=true`;
-    const destination = `nmb-extension/${modelName}`;
+    const modelUrl = `${baseUrl}/${modelName}?download=true`;
+
     const spinnerContainerClasses = "inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-e-transparent align-[-0.125em] text-surface motion-reduce:animate-[spin_1.5s_linear_infinite] dark:text-white";
     const spinnerElementClasses = "!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]";
 
     async function handleOnClick() {
         setLoading(true);
         try {
-            const { data } = await browser.runtime.sendMessage({ action: "download-model", value: { url, destination } });
+            const { data } = await browser.runtime.sendMessage({
+                action: "download-model",
+                value: {
+                    modelUrl,
+                    modelName,
+                    placeholderUrl,
+                },
+            });
             setModelFileName(data);
         } catch (error) {
             console.error(error);

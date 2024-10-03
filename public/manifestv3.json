@@ -23,9 +23,11 @@
   ],
   "permissions": [
     "storage",
-    "active_tab",
-    "downloads",
-    "file:///"
+    "activeTab",
+    "downloads"
+  ],
+  "host_permissions": [
+    "file://*/*"
   ],
   "background": {
     "service_worker": "./background.global.js"

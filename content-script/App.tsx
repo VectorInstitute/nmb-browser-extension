@@ -3,7 +3,8 @@ import { Readability } from "@mozilla/readability";
 
 import {useState} from "react";
 
-import { InferenceSession, env } from "onnxruntime-web";
+import { InferenceSession, Tensor, env } from "onnxruntime-web";
+import { BertTokenizer } from '@xenova/transformers';
 
 const App = () => {
     const [result, setResult] = useState("");
@@ -12,7 +13,9 @@ const App = () => {
     // Differences in Manifest V2 vs V3:
     let browserRuntime = browser.extension.getURL ? browser.extension : browser.runtime;
 
-    let modelPath = browserRuntime.getURL("models/tinybert_mpds2024a_finetuned.onnx");
+    let modelPath = browserRuntime.getURL("models/tinybert/tinybert_mpds2024a_finetuned.onnx");
+    let tokenizerPath = browserRuntime.getURL("models/tinybert/quantized_bert-base-cased_default_tokenizer.json");
+    let tokenizerConfigPath = browserRuntime.getURL("models/tinybert/quantized_bert-base-cased_default_tokenizer_config.json");
     env.wasm.wasmPaths = {
         mjs: browserRuntime.getURL("models/ort-wasm-simd-threaded.mjs"),
         wasm: browserRuntime.getURL("models/ort-wasm-simd-threaded.wasm"),
@@ -26,8 +29,27 @@ const App = () => {
             const articleContent = reader.parse();
             const textContent = articleContent.textContent;
 
+            const tokenizerJson = await jsonConfigFetcher(tokenizerPath);
+            const tokenizerConfigJson = await jsonConfigFetcher(tokenizerConfigPath);
+            const tokenizer = new BertTokenizer(tokenizerJson, tokenizerConfigJson);
+            const tokenizedInput = await tokenizer(
+                "I love transformers!",
+                {
+                    text_pair: "some context",
+                    max_length: 300,  // we limited the input to 300 tokens during finetuning
+                    padding: "max_length",
+                    truncation: true,
+                },
+            )
+
             const session = await InferenceSession.create(modelPath);
-            console.log(session);
+            const modelInput = {};
+            for (let inputName of session.inputNames) {
+                const input = tokenizedInput[inputName];
+                modelInput[inputName] = new Tensor(input.type, input.data, input.dims);
+            }
+            const result = await session.run(modelInput);
+            console.log(result);
 
             setResult(`Page text content has ${textContent.length} characters. ONNX session: ${session}`);
         } catch (error) {
@@ -51,3 +73,9 @@ const App = () => {
     );
 }
 export default App;
+
+async function jsonConfigFetcher(url: string) {
+    const response = await fetch(url);
+    const jsonData = await response.json();
+    return jsonData;
+}

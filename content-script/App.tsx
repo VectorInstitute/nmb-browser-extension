@@ -29,27 +29,13 @@ const App = () => {
             const articleContent = reader.parse();
             const textContent = articleContent.textContent;
 
-            const tokenizerJson = await jsonConfigFetcher(tokenizerPath);
-            const tokenizerConfigJson = await jsonConfigFetcher(tokenizerConfigPath);
-            const tokenizer = new BertTokenizer(tokenizerJson, tokenizerConfigJson);
-            const tokenizedInput = await tokenizer(
-                "I love transformers!",
-                {
-                    text_pair: "some context",
-                    max_length: 300,  // we limited the input to 300 tokens during finetuning
-                    padding: "max_length",
-                    truncation: true,
-                },
-            )
+            const { session, tokenizer } = await getSessionAndTokenizer(modelPath, tokenizerPath, tokenizerConfigPath);
+            const modelInputs = await getInputs(textContent, tokenizer, session.inputNames);
 
-            const session = await InferenceSession.create(modelPath);
-            const modelInput = {};
-            for (let inputName of session.inputNames) {
-                const input = tokenizedInput[inputName];
-                modelInput[inputName] = new Tensor(input.type, input.data, input.dims);
+            for (let modelInput of modelInputs) {
+                const result = await session.run(modelInput);
+                console.log(result);
             }
-            const result = await session.run(modelInput);
-            console.log(result);
 
             setResult(`Page text content has ${textContent.length} characters. ONNX session: ${session}`);
         } catch (error) {
@@ -78,4 +64,36 @@ async function jsonConfigFetcher(url: string) {
     const response = await fetch(url);
     const jsonData = await response.json();
     return jsonData;
+}
+
+async function getSessionAndTokenizer(modelPath: string, tokenizerPath: string, tokenizerConfigPath: string) {
+    const tokenizerJson = await jsonConfigFetcher(tokenizerPath);
+    const tokenizerConfigJson = await jsonConfigFetcher(tokenizerConfigPath);
+    const tokenizer = new BertTokenizer(tokenizerJson, tokenizerConfigJson);
+    const session = await InferenceSession.create(modelPath);
+    return { session, tokenizer };
+}
+
+async function getInputs(textContent: string, tokenizer: Function, inputNames: Array<string>) {
+    const modelInputs = [];
+
+    const tokenizedInput = await tokenizer(
+        "I love transformers!",
+        {
+            text_pair: "some context",
+            max_length: 300,  // we limited the input to 300 tokens during finetuning
+            padding: "max_length",
+            truncation: true,
+        },
+    )
+
+    const modelInput = {};
+    for (let inputName of inputNames) {
+        const input = tokenizedInput[inputName];
+        modelInput[inputName] = new Tensor(input.type, input.data, input.dims);
+    }
+
+    modelInputs.push(modelInput);
+
+    return modelInputs;
 }

@@ -42,7 +42,7 @@ const App = () => {
             const results = []
             for (let modelInput of modelInputs) {
                 results.push(await session.run(modelInput));
-                console.log(`${results.length}/${modelInputs.length}`);
+                console.log(`Progress: ${results.length}/${modelInputs.length}`);
             }
 
             const rile = calculateRILEIndex(results);

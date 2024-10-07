@@ -33,8 +33,6 @@ const App = () => {
             const articleContent = reader.parse();
             const textContent = articleContent.textContent;
 
-            console.log(textContent);
-
             let winkWorker = winkNLP(winkModel);
             const sentences = getSentences(textContent, winkWorker);
 

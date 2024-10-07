@@ -5,6 +5,8 @@ import {useState} from "react";
 
 import { InferenceSession, Tensor, env } from "onnxruntime-web";
 import { BertTokenizer } from '@xenova/transformers';
+import winkNLP from "wink-nlp";
+import winkModel from "wink-eng-lite-web-model";
 
 const App = () => {
     const [result, setResult] = useState("");
@@ -28,9 +30,11 @@ const App = () => {
             const reader = new Readability(document.cloneNode(true));
             const articleContent = reader.parse();
             const textContent = articleContent.textContent;
+            const winkWorker = winkNLP(winkModel);
+            const sentences = getSentences(textContent, winkWorker);
 
             const { session, tokenizer } = await getSessionAndTokenizer(modelPath, tokenizerPath, tokenizerConfigPath);
-            const modelInputs = await getInputs(textContent, tokenizer, session.inputNames);
+            const modelInputs = await getInputs(sentences, tokenizer, session.inputNames);
 
             for (let modelInput of modelInputs) {
                 const result = await session.run(modelInput);
@@ -74,26 +78,42 @@ async function getSessionAndTokenizer(modelPath: string, tokenizerPath: string, 
     return { session, tokenizer };
 }
 
-async function getInputs(textContent: string, tokenizer: Function, inputNames: Array<string>) {
+function getSentences(textContent: string, winkWorker: Object) {
+    const document = winkWorker.readDoc(textContent);
+    return document.sentences().out();
+}
+
+async function getInputs(sentences: Array<string>, tokenizer: Function, inputNames: Array<string>) {
     const modelInputs = [];
 
-    const tokenizedInput = await tokenizer(
-        "I love transformers!",
-        {
-            text_pair: "some context",
-            max_length: 300,  // we limited the input to 300 tokens during finetuning
-            padding: "max_length",
-            truncation: true,
-        },
-    )
+    for (let i = 0; i < sentences.length; i++) {
+        let sentenceContext;
+        if (i === 0) { // first sentence
+            sentenceContext = sentences[i] + " " + sentences[i + 1];
+        } else if (i === sentences.length - 1){ // last sentence
+            sentenceContext = sentences[i - 1] + " " + sentences[i];
+        } else {
+            sentenceContext = sentences[i - 1] + " " + sentences[i] + " " + sentences[i + 1];
+        }
 
-    const modelInput = {};
-    for (let inputName of inputNames) {
-        const input = tokenizedInput[inputName];
-        modelInput[inputName] = new Tensor(input.type, input.data, input.dims);
+        const tokenizedInput = await tokenizer(
+            sentences[i],
+            {
+                text_pair: sentenceContext,
+                max_length: 300,  // we limited the input to 300 tokens during finetuning
+                padding: "max_length",
+                truncation: true,
+            },
+        )
+
+        const modelInput = {};
+        for (let inputName of inputNames) {
+            const input = tokenizedInput[inputName];
+            modelInput[inputName] = new Tensor(input.type, input.data, input.dims);
+        }
+
+        modelInputs.push(modelInput);
     }
-
-    modelInputs.push(modelInput);
 
     return modelInputs;
 }

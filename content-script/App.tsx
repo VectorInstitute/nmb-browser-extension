@@ -3,9 +3,20 @@ import { Readability } from "@mozilla/readability";
 
 import {useState} from "react";
 
+import { InferenceSession, env } from "onnxruntime-web";
+
 const App = () => {
     const [result, setResult] = useState("");
     const [loading, setLoading] = useState(false);
+
+    // Differences in Manifest V2 vs V3:
+    let browserRuntime = browser.extension.getURL ? browser.extension : browser.runtime;
+
+    let modelPath = browserRuntime.getURL("models/tinybert_mpds2024a_finetuned.onnx");
+    env.wasm.wasmPaths = {
+        mjs: browserRuntime.getURL("models/ort-wasm-simd-threaded.mjs"),
+        wasm: browserRuntime.getURL("models/ort-wasm-simd-threaded.wasm"),
+    };
 
     async function handleOnClick() {
         setLoading(true);
@@ -14,9 +25,11 @@ const App = () => {
             const reader = new Readability(document.cloneNode(true));
             const articleContent = reader.parse();
             const textContent = articleContent.textContent;
-            console.log(textContent);
 
-            setResult(`Page text content has ${textContent.length} characters.`);
+            const session = await InferenceSession.create(modelPath);
+            console.log(session);
+
+            setResult(`Page text content has ${textContent.length} characters. ONNX session: ${session}`);
         } catch (error) {
             console.error(error);
             setResult(error.toString());

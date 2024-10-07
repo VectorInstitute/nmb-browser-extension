@@ -34,5 +34,10 @@
   },
   "icons": {
     "128": "logo128.png"
-  }
+  },
+  "web_accessible_resources": [
+    "models/tinybert_mpds2024a_finetuned.onnx",
+    "models/ort-wasm-simd-threaded.mjs",
+    "models/ort-wasm-simd-threaded.wasm"
+  ]
 }

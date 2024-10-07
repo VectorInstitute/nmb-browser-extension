@@ -30,16 +30,22 @@ const App = () => {
             const reader = new Readability(document.cloneNode(true));
             const articleContent = reader.parse();
             const textContent = articleContent.textContent;
-            const winkWorker = winkNLP(winkModel);
+
+            let winkWorker = winkNLP(winkModel);
             const sentences = getSentences(textContent, winkWorker);
 
-            const { session, tokenizer } = await getSessionAndTokenizer(modelPath, tokenizerPath, tokenizerConfigPath);
+            let { session, tokenizer } = await getSessionAndTokenizer(modelPath, tokenizerPath, tokenizerConfigPath);
             const modelInputs = await getInputs(sentences, tokenizer, session.inputNames);
 
             for (let modelInput of modelInputs) {
                 const result = await session.run(modelInput);
                 console.log(result);
             }
+
+            // Ensure heavy objects are deallocated
+            winkWorker = null;
+            session = null;
+            tokenizer = null;
 
             setResult(`Page text content has ${textContent.length} characters. ONNX session: ${session}`);
         } catch (error) {
@@ -64,13 +70,13 @@ const App = () => {
 }
 export default App;
 
-async function jsonConfigFetcher(url: string) {
+async function jsonConfigFetcher(url: string): Object {
     const response = await fetch(url);
     const jsonData = await response.json();
     return jsonData;
 }
 
-async function getSessionAndTokenizer(modelPath: string, tokenizerPath: string, tokenizerConfigPath: string) {
+async function getSessionAndTokenizer(modelPath: string, tokenizerPath: string, tokenizerConfigPath: string): { Object, Function } {
     const tokenizerJson = await jsonConfigFetcher(tokenizerPath);
     const tokenizerConfigJson = await jsonConfigFetcher(tokenizerConfigPath);
     const tokenizer = new BertTokenizer(tokenizerJson, tokenizerConfigJson);
@@ -78,28 +84,19 @@ async function getSessionAndTokenizer(modelPath: string, tokenizerPath: string, 
     return { session, tokenizer };
 }
 
-function getSentences(textContent: string, winkWorker: Object) {
+function getSentences(textContent: string, winkWorker: Object): Array<string> {
     const document = winkWorker.readDoc(textContent);
     return document.sentences().out();
 }
 
-async function getInputs(sentences: Array<string>, tokenizer: Function, inputNames: Array<string>) {
+async function getInputs(sentences: Array<string>, tokenizer: Function, inputNames: Array<string>): Array<Object> {
     const modelInputs = [];
 
     for (let i = 0; i < sentences.length; i++) {
-        let sentenceContext;
-        if (i === 0) { // first sentence
-            sentenceContext = sentences[i] + " " + sentences[i + 1];
-        } else if (i === sentences.length - 1){ // last sentence
-            sentenceContext = sentences[i - 1] + " " + sentences[i];
-        } else {
-            sentenceContext = sentences[i - 1] + " " + sentences[i] + " " + sentences[i + 1];
-        }
-
         const tokenizedInput = await tokenizer(
             sentences[i],
             {
-                text_pair: sentenceContext,
+                text_pair: buildSentenceContext(sentences, i),
                 max_length: 300,  // we limited the input to 300 tokens during finetuning
                 padding: "max_length",
                 truncation: true,
@@ -116,4 +113,13 @@ async function getInputs(sentences: Array<string>, tokenizer: Function, inputNam
     }
 
     return modelInputs;
+}
+
+function buildSentenceContext(sentences: Array<string>, index: number): string {
+    if (index === 0) { // first sentence
+        return sentences[index] + " " + sentences[index + 1];
+    } else if (index === sentences.length - 1){ // last sentence
+        return sentences[index - 1] + " " + sentences[index];
+    }
+    return sentences[index - 1] + " " + sentences[index] + " " + sentences[index + 1];
 }

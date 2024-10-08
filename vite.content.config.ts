@@ -14,13 +14,19 @@ export default defineConfig({
     lib: {
       formats: ['iife'],
       entry: resolve(__dirname, './content-script/index.tsx'),
-      name: 'News Bias Detector'
+      name: 'News Bias Detector',
     },
     rollupOptions: {
       output: {
         entryFileNames: 'index.global.js',
         extend: true,
-      }
-    }
-  }
+      },
+    },
+    target: 'esnext',
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      target: 'esnext',
+    },
+  },
 })

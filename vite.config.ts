@@ -22,7 +22,13 @@ export default defineConfig({
     rollupOptions: {
       input: {
         background: new URL('./background.html', import.meta.url).pathname,
-      }
-    }
-  }
+      },
+    },
+    target: 'esnext',
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      target: 'esnext',
+    },
+  },
 })

@@ -35,9 +35,11 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "models/tinybert_mpds2024a_finetuned.onnx",
         "models/ort-wasm-simd-threaded.mjs",
-        "models/ort-wasm-simd-threaded.wasm"
+        "models/ort-wasm-simd-threaded.wasm",
+        "models/tinybert/tinybert_mpds2024a_finetuned.onnx",
+        "models/tinybert/quantized_bert-base-cased_default_tokenizer.json",
+        "models/tinybert/quantized_bert-base-cased_default_tokenizer_config.json"
       ],
       "matches": ["<all_urls>"]
     }
